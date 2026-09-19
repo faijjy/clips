@@ -12,7 +12,7 @@ function LoginContent() {
   const searchParams = useSearchParams();
   const next = searchParams.get("callbackUrl") || searchParams.get("next") || "/";
 
-  const [activeTab, setActiveTab] = useState("google"); // "google" | "apikey"
+  const [activeTab, setActiveTab] = useState("apikey"); // "google" | "apikey" — MuAPI key is the default (from git)
   const [apiKeyInput, setApiKeyInput] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
