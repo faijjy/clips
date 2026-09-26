@@ -64,5 +64,3 @@ if (typeof window === "undefined") {
 }
 
 export default config;
-
-export default config;
