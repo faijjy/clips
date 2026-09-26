@@ -1,13 +1,13 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
-import config from "@/lib/config";
+import { PERSONAL_MODE, resolveApiKey } from "@/lib/personal";
 
 export async function POST(req) {
   try {
-    const session = await getServerSession(authOptions);
+    const session = PERSONAL_MODE ? null : await getServerSession(authOptions);
 
-    if (!session?.user) {
+    if (!PERSONAL_MODE && !session?.user) {
       return new NextResponse("Unauthorized", { status: 401 });
     }
 
@@ -18,12 +18,14 @@ export async function POST(req) {
       return new NextResponse("No file provided", { status: 400 });
     }
 
-    const apiKey = config.ai.headshot.apiKey;
+    const apiKey = resolveApiKey({
+      headerKey: req.headers.get("x-custom-api-key"),
+      sessionKey: session?.user?.customApiKey,
+    });
     if (!apiKey) {
       return new NextResponse("API Key not configured", { status: 500 });
     }
 
-    // Prepare for MuAPI
     const muapiFormData = new FormData();
     muapiFormData.append("file", file);
 

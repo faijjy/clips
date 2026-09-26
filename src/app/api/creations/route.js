@@ -2,18 +2,20 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
+import { PERSONAL_MODE, resolveUser } from "@/lib/personal";
 
 export async function GET() {
-  const session = await getServerSession(authOptions);
+  const session = PERSONAL_MODE ? null : await getServerSession(authOptions);
+  const user = await resolveUser(session);
 
-  if (!session || !session.user) {
+  if (!user?.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   try {
     const creations = await prisma.creation.findMany({
-      where: { 
-        userId: session.user.id
+      where: {
+        userId: user.id,
       },
       orderBy: { createdAt: "desc" },
     });

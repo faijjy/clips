@@ -2,12 +2,14 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import { AIService } from "@/lib/services/ai";
+import { PERSONAL_MODE, resolveApiKey, resolveUser } from "@/lib/personal";
 
 export async function POST(req) {
   try {
-    const session = await getServerSession(authOptions);
+    const session = PERSONAL_MODE ? null : await getServerSession(authOptions);
+    const user = await resolveUser(session);
 
-    if (!session?.user) {
+    if (!user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
@@ -18,10 +20,20 @@ export async function POST(req) {
       return NextResponse.json({ error: "YouTube video URL is required" }, { status: 400 });
     }
 
-    const headerApiKey = req.headers.get("x-custom-api-key");
-    const customApiKey = headerApiKey || body.customApiKey || session.user.customApiKey || null;
+    const customApiKey = resolveApiKey({
+      headerKey: req.headers.get("x-custom-api-key"),
+      bodyKey: body.customApiKey,
+      sessionKey: session?.user?.customApiKey,
+    });
 
-    const result = await AIService.youtubeDownload(session.user.id, {
+    if (!customApiKey) {
+      return NextResponse.json(
+        { error: "AICLIPS_API_KEY is not configured on the server" },
+        { status: 500 }
+      );
+    }
+
+    const result = await AIService.youtubeDownload(user.id, {
       video_url,
       format: format || "720",
       customApiKey,

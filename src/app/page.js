@@ -1,6 +1,5 @@
 "use client";
 
-import { useSession, signIn } from "next-auth/react";
 import { downloadMedia } from "@/lib/utils";
 import { useState, useRef, useEffect } from "react";
 import {
@@ -14,7 +13,6 @@ import {
 } from "react-icons/fa";
 import { FiDownload } from "react-icons/fi";
 import { motion, AnimatePresence } from "framer-motion";
-import { useRouter } from "next/navigation";
 
 const YT_FORMATS = [
   { label: "1080p (FHD)", value: "1080" },
@@ -35,11 +33,8 @@ const ASPECT_RATIOS = [
 ];
 
 export default function Home() {
-  const { data: session, status } = useSession();
-  const router = useRouter();
-
   // Tab State: "download" | "clip"
-  const [activeTab, setActiveTab] = useState("download");
+  const [activeTab, setActiveTab] = useState("clip");
 
   // YouTube Download State
   const [ytUrl, setYtUrl] = useState("");
@@ -111,7 +106,6 @@ export default function Home() {
   }, [clipUrl, numHighlights]);
 
   const handleYtDownload = async () => {
-    if (!session) return signIn();
     if (!ytUrl) return setError("Please enter a YouTube URL.");
 
     try {
@@ -180,7 +174,6 @@ export default function Home() {
   };
 
   const handleAiClipping = async () => {
-    if (!session) return signIn();
     if (!clipUrl) return setError("Please enter a video URL to clip.");
 
     try {
@@ -249,10 +242,10 @@ export default function Home() {
         {/* Header Title */}
         <div className="space-y-2">
           <h1 className="text-3xl font-semibold tracking-tight text-foreground">
-            AICLIP Studio
+            Dashboard
           </h1>
           <p className="text-sm text-muted">
-            Download YouTube videos and extract viral highlights.
+            Paste a YouTube link, download, and extract clips — personal use, no login.
           </p>
         </div>
 

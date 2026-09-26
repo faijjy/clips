@@ -1,15 +1,22 @@
 import { NextResponse } from "next/server";
 import { AIService } from "@/lib/services/ai";
+import { resolveApiKey } from "@/lib/personal";
 
 export async function POST(req) {
   try {
-    const { requestId } = await req.json();
+    const body = await req.json();
+    const { requestId } = body;
 
     if (!requestId) {
       return NextResponse.json({ error: "requestId is required" }, { status: 400 });
     }
 
-    const result = await AIService.checkStatus(requestId);
+    const customApiKey = resolveApiKey({
+      headerKey: req.headers.get("x-custom-api-key"),
+      bodyKey: body.customApiKey,
+    });
+
+    const result = await AIService.checkStatus(requestId, customApiKey);
     return NextResponse.json(result);
   } catch (error) {
     console.error("[YOUTUBE_DOWNLOAD_STATUS]", error);
